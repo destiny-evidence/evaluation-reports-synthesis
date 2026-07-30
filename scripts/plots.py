@@ -5,13 +5,14 @@ import umap.umap_ as umap # type: ignore
 import matplotlib.pyplot as plt # type: ignore
 import seaborn as sns # type: ignore
 
-# Load embeddings from parquet
-df = pd.read_parquet("title_embeddings/all_md_section_titles.parquet")
-# if embeddings are stored as lists/arrays in a column
-X = np.vstack(df['embedding'].to_numpy())  # shape: (n_samples, dim)
-
-def embeddings_map2d(n_clusters=10, random_state=16, top_k=10, X=X):
+def embeddings_map2d(random_state=16, top_k=10):
+    
+    # Load embeddings from parquet
+    df = pd.read_parquet("title_embeddings/all_md_section_titles.parquet")
+    # if embeddings are stored as lists/arrays in a column
+    X = np.vstack(df["embedding"].to_numpy())  # shape: (n_samples, dim)
     labels = df['cluster'].values
+
     # Reduce to 2D for visualisation
     umap_2d = umap.UMAP(n_components=2, random_state=random_state, n_neighbors=30, min_dist=0.1) # this takes ages to run -- move to cluster? 
     coords = umap_2d.fit_transform(X)  # shape: (n_samples, 2)
