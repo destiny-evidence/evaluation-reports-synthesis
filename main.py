@@ -776,6 +776,23 @@ def build_and_query(term_lists):
             group_queries.append(group_query)
     return " AND ".join(group_queries)
 
+def match_search_results(fileresults, filedatabase):
+    with open(fileresults, 'r') as f:
+        data = json.load(f)
+    matched_ids = data['matched_doc_ids']
+    matched_ids = [str(id) for id in matched_ids]
+    print(f"your search results contain {len(matched_ids)} unique file IDs")
+
+
+    df = pd.read_csv(filedatabase)
+    df['item-ID'] = df['item-ID'].astype(str)
+    print(f"looking for matching data for your search results in the database of {df.shape[0]} rows")
+    
+    # filter the dataframe
+    filtered_df = df[df['item-ID'].isin(matched_ids)]
+    print(f"saving the data now, including {filtered_df.shape[0]} rows")
+    filtered_df.to_csv("nbs_health_climate.csv", index=False)
+
 
 health_terms = ['health',
     '"mental health"',
@@ -852,7 +869,21 @@ intervention_terms = [
 
 if __name__ == "__main__":
 
-    FOLDER = "/home/lt1412/Desktop/UNEG-repository/markdown"
+    FILERESULT = "/home/lt1412/Desktop/evaluation-reports-synthesis/search_results/search_result_nbs_health_climate.json"
+    FILEDATABASE = "/home/lt1412/Desktop/UNEG-repository/member_publications_afterdownload.csv"
+
+    match_search_results(fileresults=FILERESULT, filedatabase=FILEDATABASE)
+
+    # FOLDER = "/home/lt1412/Desktop/UNEG-repository/markdown"
+    # QUERY = build_and_query([nbs_terms, climate_risk_terms, health_terms])
+    # print(f"Running AND query: {QUERY}\n")
+    # RESULT = boolean_search_markdown_section(folder=FOLDER, query=QUERY)
+    # print(f"User query: {RESULT["query"]}")
+    # print(f"Total files matching query (inside section search): {RESULT["matched_doc_count"]}")
+    # print(f"Total sections matching query: {RESULT["total_section_matches"]}")
+    # with open(f'search_result_nbs_health_climate.json', 'w') as f:
+    #     json.dump(RESULT,f)
+
     #RESULT = detect_language(FOLDER)
     #with open('reportlanguage.json', 'w') as f:
     #    json.dump(RESULT, f)
@@ -877,12 +908,7 @@ if __name__ == "__main__":
     #     print(f"Total files matching query (inside section search): {RESULT["matched_doc_count"]}")
     #     print(f"Total sections matching query: {RESULT["total_section_matches"]}")
     
-    #QUERY = build_and_query([air_pollution_terms, intervention_terms, ['mortality','deaths']])
-    #print(f"Running AND query: {QUERY}\n")
-    #RESULT = boolean_search_markdown_section(folder=FOLDER, query=QUERY)
-    #print(f"User query: {RESULT["query"]}")
-    #print(f"Total files matching query (inside section search): {RESULT["matched_doc_count"]}")
-    #print(f"Total sections matching query: {RESULT["total_section_matches"]}")
+
 
     # KEYWORD = "executive summary"
     # result = search_section_titles(folder=FOLDER, keyword=KEYWORD)
