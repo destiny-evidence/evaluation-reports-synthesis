@@ -110,7 +110,7 @@ def detect_language(folder):
             })
         #df = pd.DataFrame(file_results)
     with open('reportlanguage.json', 'w') as f:
-        json.dump(file_results, f)
+        json.dump(file_results, f, default=str)
     #return df
     return file_results
 
@@ -602,7 +602,50 @@ def parse_boolean_query(raw_query):
     expr = " ".join(py_tokens)
     return expr, terms
 
-def boolean_search_markdown_section(folder, query, case_sensitive=False): # search matches inside sections rather than across the full file
+def doc_id_from_path(path):
+    stem = re.sub(r'_en_translation$', '', Path(path).stem)
+    return re.sub(r'_\d+$', '', stem)
+
+# detect_language may store 'en', 'unknown', a langdetect Language object,
+# or a list of them ([de:0.99, en:0.01]). Reduce all of those to a plain code.
+def normalise_language(language):
+    if isinstance(language, (list, tuple)):
+        language = language[0] if language else ""
+    lang = getattr(language, "lang", language)   # Language object → its .lang
+    lang = str(lang).strip().strip("[]")         # "[de:0.99]" → "de:0.99"
+    return lang.split(":")[0].strip().lower()    # "de:0.99"  → "de"
+
+def select_search_paths(folder, file_results=None):
+    folder = Path(folder)
+    paths = sorted(folder.rglob("*.md"))
+
+    if file_results is None:          # keep old behaviour when no language info given
+        return paths
+
+    if isinstance(file_results, (str, Path)):   # allow passing reportlanguage.json
+        with open(file_results) as f:
+            file_results = json.load(f)
+
+    nonen_ids = {item['file_id'] for item in file_results
+                 if normalise_language(item.get('language')) != 'en'}
+    selected = []
+    for path in paths:
+        is_translation = path.stem.endswith("_en_translation")
+        if doc_id_from_path(path) in nonen_ids:
+            if is_translation:
+                selected.append(path)
+                print(f"Using English translation for {path.stem}.")                 # use the translation
+            else:
+                translation = path.with_name(path.stem + "_en_translation.md")
+                if not translation.exists():          # nothing translated yet
+                    print(f"No English translation for {path.stem}, searching the original.")
+                    selected.append(path)
+        elif not is_translation:
+            selected.append(path)                     # English report: original only
+
+    return selected
+
+def boolean_search_markdown_section(folder, query, case_sensitive=False, file_results=None): # search matches inside sections rather than across the full file
     folder = Path(folder)
 
     # build Python expression and term set from the query
@@ -619,10 +662,14 @@ def boolean_search_markdown_section(folder, query, case_sensitive=False): # sear
     files_matching_query = 0
     total_section_matches = 0
     matched_ids = set()
-    file_results = []
+    file_frequencies = []
 
-    for path in folder.rglob("*.md"):
+    paths = select_search_paths(folder, file_results)
+
+    for path in paths:
         total_files += 1
+        if total_files % 200 == 0:
+            print(f"searched {total_files} files, {files_matching_query} matching so far", flush=True)
         try:
             sections = parse_md_sections(path)
         except Exception as e:
@@ -648,14 +695,14 @@ def boolean_search_markdown_section(folder, query, case_sensitive=False): # sear
             files_matching_query += 1
             total_section_matches += section_match_count
             # strip the _1 / _2 suffix: "FILEID_1" → "FILEID"
-            doc_id = re.sub(r'_\d+$', '', path.stem)
+            doc_id = doc_id_from_path(path)
             matched_ids.add(doc_id)
-            file_results.append({
+            file_frequencies.append({
                 "file_id": doc_id,
                 "frequency": section_match_count
             })
 
-
+# file frequencies are counted multiple times if we have _2 files and so on
     return {
         "query": query,
         "total_files": total_files,
@@ -663,7 +710,7 @@ def boolean_search_markdown_section(folder, query, case_sensitive=False): # sear
         "total_section_matches": total_section_matches,
         "matched_doc_ids": sorted(matched_ids),
         "matched_doc_count": len(matched_ids),
-        "file_frequencies": file_results    
+        "file_frequencies": file_frequencies    
     }
 
 def split_paragraphs(text):
@@ -776,9 +823,8 @@ def match_search_results(fileresults, filedatabase, search_title):
     # filter the dataframe
     filtered_df = df[df['item-ID'].isin(matched_ids)]
     print(f"saving the data now, including {filtered_df.shape[0]} rows")
-    filtered_df.to_csv(f"{search_title}.csv", index=False)
+    filtered_df.to_csv(f"search_results/{search_title}.csv", index=False)
 
 # TODO: double check the visualise_file_frequencies -- seems like file count vs bar chart is sometimes off
-# TODO: for all searches, if file_id language is not en, take translation
 # TODO: if there is no translation available - translate the query into the language of the file and search
 # TODO: implement instead semantic search in the section embeddings / paragraph embeddings

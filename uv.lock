@@ -826,7 +826,7 @@ wheels = [
 [[package]]
 name = "data-extraction-evaluation-toolkit"
 version = "0.2.0"
-source = { git = "https://github.com/destiny-evidence/data-extraction-evaluation-toolkit.git?rev=docs%2Fdoc-structure-iwizards#501a8091c7874b276472e4b38288854daeefda65" }
+source = { git = "https://github.com/destiny-evidence/data-extraction-evaluation-toolkit.git?rev=development#08388977a50adf1063ef0e2e5073d6aa0cf87f59" }
 dependencies = [
     { name = "destiny-sdk" },
     { name = "diskcache" },
@@ -845,6 +845,7 @@ dependencies = [
     { name = "pypandoc" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
+    { name = "rapidfuzz" },
     { name = "scikit-learn" },
     { name = "tabulate" },
     { name = "toml" },
@@ -1005,7 +1006,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "chromadb", specifier = ">=1.3.6" },
-    { name = "data-extraction-evaluation-toolkit", git = "https://github.com/destiny-evidence/data-extraction-evaluation-toolkit.git?rev=docs%2Fdoc-structure-iwizards" },
+    { name = "data-extraction-evaluation-toolkit", git = "https://github.com/destiny-evidence/data-extraction-evaluation-toolkit.git?rev=development" },
     { name = "deep-translator", specifier = ">=1.11.4" },
     { name = "fastparquet", specifier = ">=2024.11.0" },
     { name = "ipykernel", specifier = ">=7.2.0" },

@@ -25,4 +25,4 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-data-extraction-evaluation-toolkit = { git = "https://github.com/destiny-evidence/data-extraction-evaluation-toolkit.git", rev = "docs/doc-structure-iwizards" }
+data-extraction-evaluation-toolkit = { git = "https://github.com/destiny-evidence/data-extraction-evaluation-toolkit.git", rev = "development" }

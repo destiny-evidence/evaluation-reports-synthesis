@@ -7,6 +7,7 @@ The project helps process and search UN evaluation reports, working with a local
 - [About](#about)
 - [Features](#features)
 - [Installation](#installation)
+- [Usage] (#usage)
 
 ## About
  
@@ -15,9 +16,11 @@ This project is developed as part of the effort to synthesise relevant evidence 
 
 ## Features
  
-- Translate files into english
+- Translation of non-English documents
 - Boolean search within texts 
 - Embedding of paragraphs/sections/section titles
+- COMING: Semantic search
+- COMING: SDG classifier
 
 ## Installation
  
@@ -33,3 +36,6 @@ cd project-name
 # Install dependencies (creates a virtual environment automatically)
 uv sync
 ```
+
+## Usage
+coming
