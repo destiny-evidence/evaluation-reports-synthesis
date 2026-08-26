@@ -1,0 +1,6 @@
+document_id,document_name,attribute_id,attribute_label,human_extraction,llm_extraction,llm_reasoning,extraction_run_id
+6003,Terminal Evaluation of Community Based Flood and Glacial Lake Outburst Risk Reduction Project (CFGORRP),1,item id,True,False,,2026-05-08_15-24-32_
+3851,Evaluation du programme de Protection de l'enfant,1,item id,True,False,,2026-05-08_15-24-32_
+1977,"Equity, scalability and sustainability in UNICEF WASH programming: Evidence from UNICEF evaluations 2007-2015 (synthesis report for the Executive Board)",1,item id,True,False,,2026-05-08_15-24-32_
+12815,Community-based confidence building among different ethnic and religious groups for SME Development for the most vulnerable in Sri Lanka - Midterm Evaluation,1,item id,True,False,"The paper does not mention climate action or SDG13. It mentions economic reconstruction and sustainable job creation, which are related to other Sustainable Development Goals (SDGs).",2026-05-08_15-24-32_
+14107,REVIEW OF LABOUR MIGRATION FUNDED PROJECTS 2011-2014,1,item id,True,False,"The paper does not mention SDG13 Climate Action. It mentions the 2030 Agenda and its Sustainable Development Goals (SDGs), but only in relation to project development and reporting, not specifically to SDG13.",2026-05-08_15-24-32_

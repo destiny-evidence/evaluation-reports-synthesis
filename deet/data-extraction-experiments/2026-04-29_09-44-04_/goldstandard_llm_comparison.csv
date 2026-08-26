@@ -1,0 +1,6 @@
+document_id,document_name,attribute_id,attribute_label,human_extraction,llm_extraction,llm_reasoning,extraction_run_id
+11174,Midterm Review of the Strategic Partnership Framework 2017-2020 (SPFII) between Sida and UN Women,1,sdg13,False,False,,2026-04-29_09-44-04_
+10817,Evaluation of the Contribution of Italian Funded Projects to Ending Violence against Women and Promoting Gender Equality in ECOWAS Member States,1,sdg13,False,False,,2026-04-29_09-44-04_
+6152,Climate Change Adaptation Programme in Water and Agriculture in Anseba region,1,sdg13,True,True,The paper is about a project that aims to promote increased food security in Eritrea through ecologically sustainable and climate-resilient improvements in agricultural production. This aligns with the goals of SDG13 Climate Action.,2026-04-29_09-44-04_
+9253,Governance and Public Administration Reform (CPD Outcome 8),1,sdg13,False,,LLM did not produce an output for this document. Check the logs carefully to find out why,2026-04-29_09-44-04_
+11113,"Final External Evaluation of the project âGender equality at the centre of reforms, peace and securityâ, funded by the Government of Sweden",1,sdg13,False,False,The paper does not mention anything about climate action or SDG13. It is focused on gender equality and women's empowerment in Ukraine.,2026-04-29_09-44-04_

@@ -1,0 +1,9 @@
+2026-04-28 12:04:56.387 | DEBUG    | deet.data_models.processed_gold_standard_annotations:_process_csv_row:120 - prompt field is empty, so we don't want this attribute 0.
+2026-04-28 12:04:56.387 | DEBUG    | deet.data_models.processed_gold_standard_annotations:_process_csv_row:120 - prompt field is empty, so we don't want this attribute 1.
+2026-04-28 12:04:56.387 | DEBUG    | deet.data_models.processed_gold_standard_annotations:_process_csv_row:120 - prompt field is empty, so we don't want this attribute 2.
+2026-04-28 12:04:56.387 | DEBUG    | deet.data_models.base:populate_prompt_from_dict:189 - added prompt  [...] to Attribute instance.
+2026-04-28 12:04:56.387 | DEBUG    | deet.data_models.processed_gold_standard_annotations:_process_csv_row:120 - prompt field is empty, so we don't want this attribute 4.
+2026-04-28 12:04:56.387 | INFO     | deet.data_models.processed_gold_standard_annotations:_import_prompts_csv_file:216 - Processed 1 prompts from /home/lt1412/Desktop/evaluation-reports-synthesis/prompts/prompt_definitions.csv
+2026-04-28 12:04:56.387 | INFO     | deet.data_models.processed_gold_standard_annotations:_filter_attributes_by_csv:170 - filtered attributes from 5 to 1 (retained only those in CSV with non-empty prompts)
+2026-04-28 12:04:56.388 | INFO     | deet.extractors.llm_data_extractor:__init__:254 - Using ollama with model: ollama/llama3.2:3b
+2026-04-28 12:04:56.388 | ERROR    | deet.ui.messenger:notify:14 - context type rag_snippets not supported

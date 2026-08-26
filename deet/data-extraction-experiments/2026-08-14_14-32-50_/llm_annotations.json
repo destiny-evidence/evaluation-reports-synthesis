@@ -1,0 +1,11 @@
+{
+  "annotated_documents": [],
+  "metadata": {
+    "model": "azure/gpt-4o-mini",
+    "total_input_tokens": 0,
+    "total_output_tokens": 0,
+    "total_cost_usd": null,
+    "per_document_tokens": {},
+    "timestamp": "2026-08-14T14:32:54.955770Z"
+  }
+}

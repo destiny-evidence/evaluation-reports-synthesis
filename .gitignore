@@ -10,6 +10,7 @@ wheels/
 .venv
 
 # outputs
+data/
 marker-parsed/
 keyword_frequency_histograms/
 chroma_db/
@@ -19,9 +20,10 @@ search_results/
 
 # env vars
 .env
+secrets
+
 
 # deet artefacts
-deet.log
-linked_documents/
-data-extraction-experiments/
-link_map.csv
+
+# EPPI reviewer communication
+scripts/EPPI-reviewer-API-PDF-import.ipynb
