@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import re
-from langdetect import detect, detect_langs
+from langdetect import detect, detect_langs, DetectorFactory
 from deep_translator import GoogleTranslator
 from deep_translator.exceptions import RequestError, TooManyRequests
 import pandas as pd # type: ignore
@@ -46,7 +46,12 @@ def find_empty_files(folder):
     print(f"\nFound {len(ignore_index)} invalid files")
     return ignore_index
 
+# describe how many files we have per doc_id, how many sections and pages, do they include an executive summary?
+# for evaluations with multiple documents, find which one is the main document?
+
+
 # parse markdown files into hierarchical sections
+# TODO: does the content also include section title? otherwise Im not sure how the section titles got translated...
 def parse_md_sections(md_path: Path):
     content = md_path.read_text()
     sections = []
@@ -70,48 +75,60 @@ def parse_md_sections(md_path: Path):
         sections.append(current_section)
     return sections
 
-# detect the language of a markdown file
-def detect_language(folder): 
 
+
+def clean_text(text):
+    text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)         # fenced code blocks
+    text = re.sub(r"`[^`]+`", "", text)                             # inline code
+    text = re.sub(r"https?://\S+", "", text)                        # URLs
+    text = re.sub(r"^#{1,6}\s+", "", text, flags=re.MULTILINE)      # headers
+    text = re.sub(r"[*_~|>\-]+", " ", text)                         # markdown symbols
+    return text.strip()
+
+
+def detect_language(folder, out_path="reportlanguage.json"):
+    """Detect the language of every .md file (one result per document, not per doc_id)."""
     folder = Path(folder)
-    total_files = 0
     file_results = []
 
-    for path in folder.rglob("*.md"):  # recursively search for .md files
-
+    for path in sorted(folder.rglob("*.md")):  # recursive search
         try:
             sections = parse_md_sections(path)
-            total_files += 1
-            doc_id = re.sub(r'_\d+$', '', path.stem)
         except Exception as e:
             print(f"Could not read {path}: {e}")
             continue
 
-        text = sections[2]['content'] if len(sections) > 2 else next((s['content'] for s in sections if s.get('content')), "")
-        # TODO: add check if the section is empty, move on to the next non empty one
-        
-        text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)  # fenced code blocks
-        text = re.sub(r"`[^`]+`", "", text)                      # inline code
-        text = re.sub(r"https?://\S+", "", text)                 # URLs
-        text = re.sub(r"^#{1,6}\s+", "", text, flags=re.MULTILINE)  # headers
-        text = re.sub(r"[*_~|>\-]+", " ", text)                  # markdown symbols
+        doc_id = re.sub(r"_\d+$", "", path.stem)  # e.g. "abc_3" -> "abc"
 
-        try:
-            language = detect(text)
-        except Exception:
+        # prefer the 3rd section, then fall back to the others in order;
+        # use the first one that still has text after cleaning
+        ordered = ([sections[2]] if len(sections) > 2 else []) + \
+                  [s for i, s in enumerate(sections) if i != 2]
+        text = ""
+        for s in ordered:
+            cleaned = clean_text(s.get("content") or "")
+            if cleaned:
+                text = cleaned
+                break
+
+        language, confidence = "unknown", None
+        if text:
             try:
-                language = detect_langs(text)
+                best = detect_langs(text)[0]          # most probable language
+                language, confidence = best.lang, round(best.prob, 3)
             except Exception:
-                language = "unknown"
+                pass
 
         file_results.append({
-            "file_id": doc_id,
+            "doc_id": doc_id,        # the parent document
+            "file": path.name,       # e.g. abc_3.md -> one row per file
             "language": language,
-            })
-        #df = pd.DataFrame(file_results)
-    with open('reportlanguage.json', 'w') as f:
-        json.dump(file_results, f, default=str)
-    #return df
+            "confidence": confidence,
+        })
+
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(file_results, f, ensure_ascii=False, indent=2)
+
     return file_results
 
 
