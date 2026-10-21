@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt # type: ignore
 import logging
 from rapidfuzz import fuzz
 import json
+from collections import defaultdict
 
 MD_DIR = Path("marker-parsed/markdown")
 
@@ -38,16 +39,15 @@ def find_empty_files(folder):
             text = path.read_text(encoding="utf-8")
             if not text.strip():  # empty or whitespace only
                 print(f"Empty: {path.name}")
-                ignore_index.append(path.stem.split("_")[0] )
+                ignore_index.append(path.stem)
         except Exception as e:
             print(f"Corrupt/unreadable: {path.name} — {e}")
-            ignore_index.append(path.stem.split("_")[0] )
+            ignore_index.append(path.stem)
     
     print(f"\nFound {len(ignore_index)} invalid files")
     return ignore_index
 
-# describe how many files we have per doc_id, how many sections and pages, do they include an executive summary?
-# for evaluations with multiple documents, find which one is the main document?
+# TODO: for evaluations with multiple documents, find which one is the main document?
 
 
 # parse markdown files into hierarchical sections
@@ -85,6 +85,8 @@ def clean_text(text):
     text = re.sub(r"[*_~|>\-]+", " ", text)                         # markdown symbols
     return text.strip()
 
+# TODO: can one file return multiple entries?
+# TODO: solve multiple language problem in the translator
 
 def detect_language(folder, out_path="reportlanguage.json"):
     """Detect the language of every .md file (one result per document, not per doc_id)."""
@@ -131,6 +133,33 @@ def detect_language(folder, out_path="reportlanguage.json"):
 
     return file_results
 
+import time
+import random
+from deep_translator import GoogleTranslator
+from deep_translator.exceptions import TooManyRequests, RequestError
+
+MIN_INTERVAL = 0.4          # ~2.5 requests/s, safely under the 5/s limit
+_last_call = 0.0
+
+def translate_chunk(chunk, lang, max_retries=6):
+    global _last_call
+    translator = GoogleTranslator(source=lang, target="en")
+
+    for attempt in range(max_retries):
+        # throttle: keep a minimum gap between requests
+        wait = MIN_INTERVAL - (time.time() - _last_call)
+        if wait > 0:
+            time.sleep(wait)
+        _last_call = time.time()
+
+        try:
+            return translator.translate(chunk)
+        except (TooManyRequests, RequestError, ConnectionError):
+            if attempt == max_retries - 1:
+                raise                                    # give up, let the caller queue it
+            backoff = min(60, 2 ** attempt) + random.random()   # 1s, 2s, 4s, ... plus jitter
+            print(f"Rate limited, retrying in {backoff:.1f}s (attempt {attempt + 1}/{max_retries})")
+            time.sleep(backoff)
 
 # break the document into pieces for translation
 def translate_long(text, source_lang):
@@ -143,26 +172,43 @@ def translate_long(text, source_lang):
         if not c.strip():
             # skip whitespace-only chunks (empty sequence fix)
             continue
-        result = GoogleTranslator(source=source_lang, target='en').translate(c)
+        result = translate_chunk(c,source_lang)
         if result:
             translated_chunks.append(result)
     return " ".join(translated_chunks)
 
+# TODO: address server error - store intermediate results? what counts as a request? is it one chunk?
+# TODO: implement another model than GoogleTranslate: TranslateGemma, MADLAD-400?
+
 # translate non-English markdown files into English
 def translate_nonen_mds(folder, file_results):
     folder = Path(folder)
+    failed_paths = []
+    
+    if isinstance(file_results, (str, Path)):
+        with open(file_results, encoding="utf-8") as f:
+            file_results = json.load(f)
+
     ignore_index = find_empty_files(folder)
-    file_results = [f for f in file_results if f['file_id'] not in ignore_index]
-    failed_paths = []  
+    ignore_index = set(ignore_index)
+    file_results = [f for f in file_results if f['file'] not in ignore_index]
+
+    # index the folder once: stem -> list of paths (a list in case of duplicate stems in subfolders)
+    by_stem = defaultdict(list)
+    for p in folder.rglob("*.md"):
+        by_stem[p.stem].append(p)
+
 
     for item in file_results:
-            if item['language'] == 'en':
+            lang = item['language']
+            if lang in ('en', 'unknown', None):
                 continue
 
-            # find the file or files associated with this document id
-            matches = list(folder.rglob(f"{item['file_id']}_*.md"))
+            stem = Path(item['file']).stem   # works whether the JSON has "10832_2" or "10832_2.md"
+            matches = by_stem.get(stem, [])
 
             if not matches:
+                print(f"No .md file found for {item['file']} - skipping.")
                 continue
 
             for path in matches:
@@ -195,10 +241,9 @@ def translate_nonen_mds(folder, file_results):
                 except Exception as e:
                     print(f"Could not read {path}: {e}")
                     continue
-    with open('filestoretry.json', 'w') as f:
-        json.dump(failed_paths, f)
+    with open('filestoretry.json', 'w', encoding="utf-8") as f:
+        json.dump(failed_paths, f, ensure_ascii=False, indent=2)
     return failed_paths
-# TODO: save failed_paths 
 
 # add embeddings to Chroma DB in chunks to avoid crashing
 def chunked_add(collection, embeddings, documents, metadatas, ids, max_batch=CHROMA_MAX_BATCH):

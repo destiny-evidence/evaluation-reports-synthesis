@@ -128,7 +128,7 @@ def describe_documents(folder, lang_json="reportlanguage.json", threshold=75):
     return per_file, per_doc
 
 
-# ---------- usage ----------
+
 FOLDER = "/home/lt1412/Desktop/evaluation-reports-synthesis/data/"
 per_file, per_doc = describe_documents(folder=FOLDER)
 

@@ -1,5 +1,5 @@
-from scripts.utils import clean_text, parse_md_sections, detect_language
-import os
+from scripts.madlad400 import find_empty_files, translate_long, translate_batch, translate_chunk, translate_nonen_mds
+from scripts.utils import detect_language
 from pathlib import Path
 import re
 from langdetect import detect, detect_langs, DetectorFactory
@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt # type: ignore
 import logging
 from rapidfuzz import fuzz
 import json
+from collections import defaultdict
 
 
 health_terms = ['health', '"well being"', 'wellbeing', '"quality of life"', 'qol', 'hrqol', 'mortalit', 'fatalit', 'disabilit', 'disorder', 'daly', 'morbidit', 'mental', 'death', 'disease', 'illness', 'injur', 'accident', 'wound', 'medical', 'medicine', 'clinic', 'hospital', 'emergenc', '"intensive care"', 'ICU', 'doctor', 'physician', 'surgery', 'surgical', 'surgeon', 'nurs', '"primary care"', '"secondary care"', '"tertiary care"', 'healthcare', 'comorbidit', 'burns', 'syndrome', 'infect', 'diet', '"food secur"', '"food insecur"', '"food shortage"', 'nutrition', 'underweight', 'malnutrition', 'undernutrition', 'undernourish', '"water quality"', '"water availability"', '"water secur"', '"water shortage"', '"water supply"', '"water stress"', 'diarrhoea', '"thermal comfort"', '"hazard incidence"', '"hazard severity"', 'pollut', 'contamina', 'wildfire', '"wild fire"', 'bushfire', '"bush fire"', '"forest fire"', '"urban temperature"', '"temperature regulation"', 'heat', 'cooling', 'vulnerable', 'vulnerability', 'drought', 'floods', 'flooding', 'storm', 'landslide', 'mudslide'
@@ -24,47 +25,26 @@ nbs_terms = ['afforestation', '"agro pastoral"', 'agroforest', '"agroecological 
 ]
 
 if __name__ == "__main__":
+    import re
+    import json
+    import torch
+    from collections import defaultdict
+    from pathlib import Path
+    from transformers import T5ForConditionalGeneration, T5Tokenizer
 
-    DetectorFactory.seed = 0  # make langdetect deterministic
-    FOLDER = "/home/lt1412/Desktop/evaluation-reports-synthesis/data/"
-    detect_language(folder=FOLDER)
-    #FILERESULT = "/home/lt1412/Desktop/evaluation-reports-synthesis/search_results/search_result_20260824IC6_query.json"
-    #FILEDATABASE = "/home/lt1412/Desktop/UNEG-repository/data/member_publications_afterdownload.csv"
-    #SEARCHTITLE = "20260824IC6_query"
+    MODEL_NAME = 'jbochi/madlad400-3b-mt'
+    model = T5ForConditionalGeneration.from_pretrained(
+        MODEL_NAME, device_map="auto",  dtype=torch.bfloat16
+        )
+    tokenizer = T5Tokenizer.from_pretrained(MODEL_NAME)
 
-    
-    #FILELANGUAGES = detect_language(folder=FOLDER)
-    #QUERY = build_and_query([nbs_terms, health_terms])
-    #print(f"Running AND query: {QUERY}\n")
-    #RESULT = boolean_search_markdown_section(folder=FOLDER, query=QUERY, file_results="search_results/reportlanguage.json")
-    #print(f"User query: {RESULT["query"]}")
-    #print(f"Total files matching query (inside section search): {RESULT["matched_doc_count"]}")
-    #print(f"Total sections matching query: {RESULT["total_section_matches"]}")
-    #with open(f'search_result_{SEARCHTITLE}.json', 'w') as f:
-    #    json.dump(RESULT,f)
+    model.eval()
 
-    #match_search_results(fileresults=FILERESULT, filedatabase=FILEDATABASE, search_title=SEARCHTITLE)
+    MAX_SEGMENT_TOKENS = 400
 
-    #RESULTS = []
-    # for term in nbs_terms + climate_risk_terms + health_terms:
-    #     RESULT = search_markdown_folder_freq(folder=FOLDER, keyword=term)
-    #     with open(f'search_result_{term}.json', 'w') as f:
-    #         json.dump(RESULT,f)
-    #     #RESULTS.append(RESULT)
-    #     visualise_file_frequencies(result=RESULT)
+    FOLDER = "/home/lt1412/Desktop/evaluation-reports-synthesis/data/markdown/test"
+    translate_nonen_mds(folder=FOLDER, file_results="reportlanguage.json")
 
-    # for term_list in [nbs_terms, climate_risk_terms, health_terms]:
-    #     QUERY = build_or_query(term_list)
-    #     print(f"Running OR query: {QUERY}\n")
-    #     RESULT = boolean_search_markdown_section(folder=FOLDER, query=QUERY)
-    #     print(f"User query: {RESULT["query"]}")
-    #     print(f"Total files matching query (inside section search): {RESULT["matched_doc_count"]}")
-    #     print(f"Total sections matching query: {RESULT["total_section_matches"]}")
-    
-    # KEYWORD = "executive summary"
-    # result = search_section_titles(folder=FOLDER, keyword=KEYWORD)
-    # print(f"{result['total_files']} total files searched,  {result['files_with_exact_matches']} files exactly matching  {KEYWORD}")
-    # print(f"{result['total_files']} total files searched,  {result['files_with_fuzzy_matches']} files fuzzily matching  {KEYWORD}")
 
 
 
