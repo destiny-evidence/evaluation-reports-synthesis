@@ -1,5 +1,4 @@
-from scripts.madlad400 import find_empty_files, translate_long, translate_batch, translate_chunk, translate_nonen_mds
-from scripts.utils import detect_language
+from scripts.madlad400 import translate_nonen_mds
 from pathlib import Path
 import re
 from langdetect import detect, detect_langs, DetectorFactory
@@ -42,9 +41,59 @@ if __name__ == "__main__":
 
     MAX_SEGMENT_TOKENS = 400
 
-    FOLDER = "/home/lt1412/Desktop/evaluation-reports-synthesis/data/markdown/test"
+
+    # import re
+    # import json
+    # from collections import defaultdict
+    # from concurrent.futures import ThreadPoolExecutor
+    # from pathlib import Path
+
+    # import ollama
+
+    # # Setup (once):
+
+    # MODEL_NAME = "translategemma"
+    # OLLAMA_HOST = "http://localhost:11434"
+    # client = ollama.Client(host=OLLAMA_HOST)
+
+    # # No HF tokenizer here, so segments are limited by characters (~4 chars per token).
+    # MAX_SEGMENT_CHARS = 1500
+    # WORKERS = 1  # >1 only helps if the Ollama server runs with OLLAMA_NUM_PARALLEL set
+
+    # TARGET_LANG = ("en", "English")
+
+    # # Language code -> name, used in the TranslateGemma prompt.
+    # LANG_NAMES = {
+    #     "ar": "Arabic", "bg": "Bulgarian", "bn": "Bengali", "cs": "Czech", "da": "Danish",
+    #     "de": "German", "el": "Greek", "en": "English", "es": "Spanish", "et": "Estonian",
+    #     "fa": "Persian", "fi": "Finnish", "fr": "French", "he": "Hebrew", "hi": "Hindi",
+    #     "hr": "Croatian", "hu": "Hungarian", "id": "Indonesian", "it": "Italian",
+    #     "ja": "Japanese", "ko": "Korean", "lt": "Lithuanian", "lv": "Latvian",
+    #     "nl": "Dutch", "no": "Norwegian", "pl": "Polish", "pt": "Portuguese",
+    #     "ro": "Romanian", "ru": "Russian", "sk": "Slovak", "sl": "Slovenian",
+    #     "sr": "Serbian", "sv": "Swedish", "th": "Thai", "tr": "Turkish",
+    #     "uk": "Ukrainian", "vi": "Vietnamese", "zh": "Chinese",
+    # }
+
+
+    # def lang_name(code):
+    #     base = code.split("-")[0].lower()
+    #     if base in LANG_NAMES:
+    #         return LANG_NAMES[base]
+    #     try:  # optional: pip install langcodes language-data
+    #         import langcodes
+    #         return langcodes.get(code).display_name()
+    #     except Exception:
+    #         return code
+
+
+    # PROMPT = (
+    #     "You are a professional {src_name} ({src_code}) to {tgt_name} ({tgt_code}) translator. "
+    #     "Your goal is to accurately convey the meaning and nuances of the original {src_name} text "
+    #     "while adhering to {tgt_name} grammar, vocabulary, and cultural sensitivities.\n"
+    #     "Produce only the {tgt_name} translation, without any additional explanations or commentary. "
+    #     "Please translate the following {src_name} text into {tgt_name}:\n\n\n{text}"
+    # )
+
+    FOLDER = "/home/lt1412/Desktop/evaluation-reports-synthesis/data/test"
     translate_nonen_mds(folder=FOLDER, file_results="reportlanguage.json")
-
-
-
-

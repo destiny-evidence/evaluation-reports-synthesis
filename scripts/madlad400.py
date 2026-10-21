@@ -92,8 +92,11 @@ def translate_long(text, source_lang=None, batch_size=8):
                 segments.append((i, seg))
 
     translated = []
+
     texts = [s for _, s in segments]
     for b in range(0, len(texts), batch_size):
+        print(f"Total length of text / number of segments {len(texts)} / {len(texts)/batch_size}.")
+        print(f"Translating chunk starting from segment {b}.")
         translated.extend(translate_batch(texts[b:b + batch_size]))
 
     by_line = defaultdict(list)
@@ -133,41 +136,42 @@ def translate_nonen_mds(folder, file_results):
             stem = Path(item['file']).stem   # works whether the JSON has "10832_2" or "10832_2.md"
             matches = by_stem.get(stem, [])
 
-            if not matches:
-                print(f"No .md file found for {item['file']} - skipping.")
-                continue
-
-            for path in matches:
-                
-                if "_en_translation" in path.stem:
+            if stem == "10081_1":       
+                if not matches:
+                    print(f"No .md file found for {item['file']} - skipping.")
                     continue
 
-                out_path = path.with_name(path.stem + "_en_translation.md")
-
-                if out_path.exists():
-                    print(f"{out_path} already exists - skipping!")
-                    continue
-
-                try:
-                    text = path.read_text(encoding="utf-8")
-                    print(f"Beginning to translate file {path.stem} now.")
-                    translated = translate_long(text)
-                    if not translated or not translated.strip():
-                        # Empty sequence: source text was blank or all chunks came back empty
-                        print(f"Skipping {path.stem}: translation returned empty content.")
+                for path in matches:
+                    
+                    if "_en_translation" in path.stem:
                         continue
-                    print(f"Translated file {path.stem}, saving it now.")
-                    # save alongside original
-                    out_path.write_text(translated, encoding="utf-8")
-                except (torch.cuda.OutOfMemoryError, RuntimeError, OSError) as e:
-                    if isinstance(e, torch.cuda.OutOfMemoryError):
-                        torch.cuda.empty_cache()
-                    print(f"Error translating {path}: {e}. Queued for retry.")
-                    failed_paths.append((str(path), item['language'], str(e)))
 
-                except Exception as e:
-                    print(f"Unexpected error on {path}: {e}")
-                    continue
+                    out_path = path.with_name(path.stem + "_en_translation_madlad.md")
+
+                    if out_path.exists():
+                        print(f"{out_path} already exists - skipping!")
+                        continue
+
+                    try:
+                        text = path.read_text(encoding="utf-8")
+                        print(f"Beginning to translate file {path.stem} now.")
+                        translated = translate_long(text)
+                        if not translated or not translated.strip():
+                            # Empty sequence: source text was blank or all chunks came back empty
+                            print(f"Skipping {path.stem}: translation returned empty content.")
+                            continue
+                        print(f"Translated file {path.stem}, saving it now.")
+                        # save alongside original
+                        out_path.write_text(translated, encoding="utf-8")
+                    except (torch.cuda.OutOfMemoryError, RuntimeError, OSError) as e:
+                        if isinstance(e, torch.cuda.OutOfMemoryError):
+                            torch.cuda.empty_cache()
+                        print(f"Error translating {path}: {e}. Queued for retry.")
+                        failed_paths.append((str(path), item['language'], str(e)))
+
+                    except Exception as e:
+                        print(f"Unexpected error on {path}: {e}")
+                        continue
     with open('filestoretry.json', 'w', encoding="utf-8") as f:
         json.dump(failed_paths, f, ensure_ascii=False, indent=2)
     return failed_paths

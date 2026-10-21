@@ -26,9 +26,6 @@ BOOL_OPS = {"AND", "OR", "NOT"}
 
 logger = logging.getLogger(__name__)
 
-# TODO: update cause it finds 0 invalid files but some other functions clearly have to skip some files
-# TODO: use ignore_index in all following calls
-
 # find empty files in the folder, create ignore_index list
 def find_empty_files(folder):
     folder = Path(folder)
@@ -51,7 +48,6 @@ def find_empty_files(folder):
 
 
 # parse markdown files into hierarchical sections
-# TODO: does the content also include section title? otherwise Im not sure how the section titles got translated...
 def parse_md_sections(md_path: Path):
     content = md_path.read_text()
     sections = []
@@ -75,8 +71,6 @@ def parse_md_sections(md_path: Path):
         sections.append(current_section)
     return sections
 
-
-
 def clean_text(text):
     text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)         # fenced code blocks
     text = re.sub(r"`[^`]+`", "", text)                             # inline code
@@ -84,9 +78,6 @@ def clean_text(text):
     text = re.sub(r"^#{1,6}\s+", "", text, flags=re.MULTILINE)      # headers
     text = re.sub(r"[*_~|>\-]+", " ", text)                         # markdown symbols
     return text.strip()
-
-# TODO: can one file return multiple entries?
-# TODO: solve multiple language problem in the translator
 
 def detect_language(folder, out_path="reportlanguage.json"):
     """Detect the language of every .md file (one result per document, not per doc_id)."""
@@ -178,7 +169,6 @@ def translate_long(text, source_lang):
     return " ".join(translated_chunks)
 
 # TODO: address server error - store intermediate results? what counts as a request? is it one chunk?
-# TODO: implement another model than GoogleTranslate: TranslateGemma, MADLAD-400?
 
 # translate non-English markdown files into English
 def translate_nonen_mds(folder, file_results):
@@ -888,5 +878,4 @@ def match_search_results(fileresults, filedatabase, search_title):
     filtered_df.to_csv(f"search_results/{search_title}.csv", index=False)
 
 # TODO: double check the visualise_file_frequencies -- seems like file count vs bar chart is sometimes off
-# TODO: if there is no translation available - translate the query into the language of the file and search
 # TODO: implement instead semantic search in the section embeddings / paragraph embeddings
