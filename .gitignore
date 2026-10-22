@@ -27,3 +27,6 @@ secrets
 
 # EPPI reviewer communication
 scripts/EPPI-reviewer-API-PDF-import.ipynb
+
+# supporting
+scripts/identify_sections.py

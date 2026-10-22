@@ -177,7 +177,7 @@ def translate_nonen_mds(folder, file_results):
         stem = Path(item["file"]).stem  # works whether the JSON has "10832_2" or "10832_2.md"
         matches = by_stem.get(stem, [])
 
-        if stem == "10081_1":
+        if stem == "11129_1":
             if not matches:
                 print(f"No .md file found for {item['file']} - skipping.")
                 continue
@@ -186,7 +186,7 @@ def translate_nonen_mds(folder, file_results):
                 if "_en_translation" in path.stem:
                     continue
 
-                out_path = path.with_name(path.stem + "_en_translation.md")
+                out_path = path.with_name(path.stem + "_en_translation_ollama.md")
 
                 if out_path.exists():
                     print(f"{out_path} already exists - skipping!")

@@ -1,6 +1,7 @@
 import re
 import json
 import torch
+import math
 from collections import defaultdict
 from pathlib import Path
 from transformers import T5ForConditionalGeneration, T5Tokenizer
@@ -94,9 +95,11 @@ def translate_long(text, source_lang=None, batch_size=8):
     translated = []
 
     texts = [s for _, s in segments]
-    for b in range(0, len(texts), batch_size):
-        print(f"Total length of text / number of segments {len(texts)} / {len(texts)/batch_size}.")
-        print(f"Translating chunk starting from segment {b}.")
+    n_batches = math.ceil(len(texts) / batch_size) 
+    print(f"Total length of text: {len(texts)}, number of batches: {n_batches}.")
+
+    for i, b in enumerate(range(0, len(texts), batch_size), start=1):
+        print(f"Translating batch {i}/{n_batches} (segments {b}-{min(b + batch_size, len(texts)) - 1}).")
         translated.extend(translate_batch(texts[b:b + batch_size]))
 
     by_line = defaultdict(list)
@@ -136,7 +139,7 @@ def translate_nonen_mds(folder, file_results):
             stem = Path(item['file']).stem   # works whether the JSON has "10832_2" or "10832_2.md"
             matches = by_stem.get(stem, [])
 
-            if stem == "10081_1":       
+            if stem == "11129_1":       
                 if not matches:
                     print(f"No .md file found for {item['file']} - skipping.")
                     continue
